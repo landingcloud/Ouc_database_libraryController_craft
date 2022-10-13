@@ -1,4 +1,5 @@
 #include "Dao.h"
+#include "Tools.h"
 
 dao::FileManager::FileManager(char* file_name, int name_length)
 {
@@ -98,18 +99,21 @@ void dao::FileManager::CloseOfs()
 	ofs_.close();
 }
 
-MetaData& dao::FileManager::ConverCharS2Meta(char* data, int data_length)
+
+int dao::FileManager::GetAllData(char** metadatas, int& num)
 {
-	// TODO: 在此处插入 return 语句
-	MetaData metadata = { 0 };
-	memcpy_s(metadata, BUFFER_LENGTH, data, data_length);
-	metadata[BUFFER_LENGTH - 1] = '\n';	//好看,按行分开，其实没啥必要
-	return metadata;
-}
-char* dao::FileManager::ConverMeta2Chars(MetaData metadata)
-{
-	char* data = NULL;
-	return nullptr;
+	if (!ifs_.is_open())
+		OpenIfs();
+	metadatas = new char* [file_length_];
+	for (int i = 0; i < file_length_; ++i) {
+		MetaData metadata;
+		ifs_.getline(metadata, BUFFER_LENGTH);	//获取一个元数据
+		
+		metadatas[i] = new char[BUFFER_LENGTH];
+		strcpy_s(metadatas[i], BUFFER_LENGTH, metadata);
+	}
+	num = file_length_;
+	return 0;
 }
 /*
 * 只能以尾插添加数据，这个函数应该被重载以适用其他插入方式。
@@ -124,7 +128,9 @@ int dao::FileManager::WriteData(char* data, int data_length)
 			return -1;
 	}
 
-	MetaData& metadata = ConverCharS2Meta(data, data_length);
+	MetaData metadata = { 0 };
+	if (ConverCharS2Meta(metadata, data, data_length) != 0)
+		return -1;
 	ofs_.write(metadata, BUFFER_LENGTH);
 	UpdateSize_();
 	CloseOfs();
@@ -147,22 +153,21 @@ int dao::FileManager::WriteData(MetaData& data)
 /*
 * 此index仅仅只表示文件的第几个元数据，没有其他任何意义，具体意义结合文件结构
 */
-MetaData& dao::FileManager::GetData(int index)
+int dao::FileManager::GetData(MetaData& metadata, int index)
 {
 	if (!ifs_.is_open())
 		OpenIfs();
 
 	if (!ifs_.is_open() || index >= file_length_ || index < 0) {
-		MetaData metadata = { 0 };
-		return metadata;
+		memset(metadata, 0, BUFFER_LENGTH);
+		return -1;
 	}
 	ifs_.clear();
 	ifs_.seekg(index * BUFFER_LENGTH, ios::beg);	//移动到下标位置
-	MetaData metadata;
 	ifs_.getline(metadata, BUFFER_LENGTH);	//获取一个元数据
 
 	CloseIfs();
-	return metadata;
+	return 0;
 }
 
 void dao::FileManager::UpdateSize_(int size)
@@ -226,7 +231,9 @@ int dao::HeapFileManager::WriteData(char* data, int data_length)
 			return -1;
 	}
 
-	MetaData& metadata = ConverCharS2Meta(data, data_length);
+	MetaData metadata = { 0 };
+	if (ConverCharS2Meta(metadata, data, data_length) != 0)
+		return -1;
 	if (void_pos_.empty()) {
 		ofs_.clear();
 		ofs_.seekp((file_length_) * BUFFER_LENGTH, ios::end);
@@ -279,6 +286,31 @@ int dao::HeapFileManager::WriteData(MetaData& metadata) {
 		CloseOfs();
 		return index;
 	}
+}
+
+int dao::HeapFileManager::UpdataData(int index, char* data, int data_length)
+{
+	MetaData metadata = { 0 };
+	if (ConverCharS2Meta(metadata, data, data_length) != 0)
+		return -1;
+	return UpdataData(index, metadata);
+}
+
+int dao::HeapFileManager::UpdataData(int index, MetaData& metadata)
+{
+	if (!ofs_.is_open()) {
+		/*return -1;*/
+		if (OpenOfs() != 0)
+			return -1;
+	}
+	if (!ofs_.is_open() || index >= file_length_ || index < 0) {
+		return -1;
+	}
+	ofs_.clear();
+	ofs_.seekp(index * BUFFER_LENGTH, ios::beg);
+	ofs_.write(metadata, BUFFER_LENGTH);
+	CloseOfs();
+	return 0;
 }
 
 int dao::HeapFileManager::DeleteData(int index)

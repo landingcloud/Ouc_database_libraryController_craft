@@ -1,13 +1,10 @@
 #pragma once
 #include<iostream>
 #include<fstream>
-
-#include<list>
 #include<set>
+#include"Configuration.h"
 using namespace std;
 
-#define BUFFER_LENGTH 100
-typedef char MetaData[BUFFER_LENGTH];
 
 
 namespace dao {
@@ -21,8 +18,7 @@ namespace dao {
 		int GetFileLength();
 		int GetBitNum();
 		
-		MetaData& ConverCharS2Meta(char* data, int data_length);
-		char* ConverMeta2Chars(MetaData metadata);
+		int GetAllData(char** metadatas, int& num);
 		/*
 		* 每次写入都会清空原数据，这个函数应该被重载以适用其他插入方式。
 		* @return -1说明未打开输出流，写入失败
@@ -31,7 +27,7 @@ namespace dao {
 		virtual int WriteData(char* data, int data_length);
 		virtual int WriteData(MetaData& data);
 		//此index仅仅只表示文件的第几个元数据，没有其他任何意义，具体意义结合文件结构
-		virtual MetaData& GetData(int index);
+		virtual int GetData(MetaData& metadata, int index);
 	protected:
 		char* file_name_;
 		int name_length_;
@@ -61,9 +57,10 @@ namespace dao {
 		~HeapFileManager();
 		const set<int> GetVoidPos() { return move(void_pos_); }
 
-		
 		virtual int WriteData(char* data, int data_length);
 		virtual int WriteData(MetaData& metadata);
+		int UpdataData(int index, char* data, int data_length);
+		int UpdataData(int index, MetaData& metadata);
 		int DeleteData(int index);
 
 	private:
@@ -79,13 +76,15 @@ namespace dao {
 
 	class HashMapManager : public FileManager {
 	public:
-		HashMapManager(char* file_name, int name_length) : FileManager(file_name, name_length), index_(-1) {}
-		HashMapManager(const char* file_name, int name_length) : FileManager(file_name, name_length), index_(-1) {}
-		int GetIndex() { return index_; }
+		HashMapManager(char* file_name, int name_length) : FileManager(file_name, name_length){}
+		HashMapManager(const char* file_name, int name_length) : FileManager(file_name, name_length){}
 
-		int WriteData(int index, MetaData content);
+		//int WriteData(int index, MetaData content);
+		int GetContents(int key, int& num, int* indexs);
+		int WriteContents(int key, int value);
+
 
 	private:
-		int index_;	//返回 堆数据中的元数据地址
+		
 	};
 }
