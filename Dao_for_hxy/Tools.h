@@ -10,3 +10,4 @@ int ConverCharS2Author(Author& author, char* data, int data_length);
 int ConverCharS2Publisher(Publisher& publisher, char* data, int data_length);
 int ConverCharS2ISBN(ISBN& isbn, char* data, int data_length = 13);
 char* ConverMeta2Chars(MetaData metadata);
+bool IsAddressSame(Address address1, Address address2);

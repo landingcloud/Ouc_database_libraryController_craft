@@ -220,6 +220,12 @@ int dao::HeapFileManager::OpenOfs()
 	if (ofs_.is_open()) {
 		return 0;
 	}
+	//没有打开成功，说明文件没有创建，创建后重试一下
+	ofstream createFile(file_name_, ios::out | ios::binary);
+	ofs_.open(file_name_, ios::out | ios::in | ios::binary);
+	if (ofs_.is_open()) {
+		return 0;
+	}
 	return -1;
 }
 
@@ -380,3 +386,127 @@ void dao::HeapFileManager::UpdataVoidPos_()
 	}
 	pos_ofs.close();
 }
+
+int dao::HashMapManager::WriteData(int key, MetaData metadata)
+{
+	if (!ofs_.is_open()) {
+		/*return -1;*/
+		if (OpenOfs() != 0)
+			return -1;
+	}
+
+	ofs_.clear();
+	ofs_.seekp(key * BUFFER_LENGTH, ios::beg);
+	ofs_.write(metadata, BUFFER_LENGTH);
+	if (key >= this->file_length_)
+		UpdateSize_(key - this->file_length_ + 1);	//补全的位置+当前位置
+	CloseOfs();
+	return 0;
+}
+
+int dao::HashMapManager::AddAddress2Meta(MetaData& metadata, Address address)
+{
+	for (int i = 0; i < BUFFER_LENGTH; i += ADDRESS_LENGTH) {
+		if (metadata[i] == '\0') {
+			for (int j = 0; j < ADDRESS_LENGTH; ++j) {
+				metadata[i + j] = address[j];
+			}
+			return 0;
+		}
+		
+	}
+	return -1;
+}
+
+int dao::HashMapManager::SplitMeta2Address(MetaData metadata, int& num, Address* addresses)
+{
+	num = 0;
+	char** temp = new char* [BUFFER_LENGTH / ADDRESS_LENGTH];	//最大num数
+	for (int i = 0; i < BUFFER_LENGTH / ADDRESS_LENGTH; i += 1) {
+		temp[i] = new char[ADDRESS_LENGTH] { 0 };
+		if (metadata[i * ADDRESS_LENGTH] != '\0') {
+			++num;
+			for (int j = 0; j < ADDRESS_LENGTH; ++j) {
+				temp[i][j] = metadata[i * ADDRESS_LENGTH + j];
+			}
+		}
+	}
+
+	for (int i = 0; i < num; ++i) {
+		strcpy_s(addresses[i], ADDRESS_LENGTH, temp[i]);
+		delete[] temp[i];
+	}
+	delete[] temp;
+	return 0;
+}
+
+int dao::HashMapManager::GetContents(int key, int& num, Address* addresses)
+{
+	MetaData metadata = { 0 };
+	if (GetData(metadata, key) == 0) {
+		SplitMeta2Address(metadata, num, addresses);
+		return 0;
+	}
+	else {
+		return -1;
+	}
+	
+}
+
+int dao::HashMapManager::WriteContents(int key, Address address)
+{
+	//得到原本字符串
+	MetaData metadata = { 0 };
+	GetData(metadata, key);
+	AddAddress2Meta(metadata, address);
+	WriteData(key, metadata);
+	return 0;
+}
+
+int dao::HashMapManager::DeleteContents(int key, Address address)
+{
+	//直接覆盖
+	if (address[0] == '\0') {
+		Address voidAddress = { 0 };
+		WriteData(key, voidAddress);
+		return 0;
+	}
+	
+	int num = 0;
+	Address* addresses = new Address[BUFFER_LENGTH / ADDRESS_LENGTH];
+	GetContents(key, num, addresses);
+	for (int i = 0; i < num; ++i) {
+		//找到相等的，删掉
+		if (IsAddressSame(addresses[i], address)) {
+			MetaData metadata = { 0 };
+			GetData(metadata, key);
+			//找到对应位置，覆盖掉
+			for (int j = 0; j < ADDRESS_LENGTH; ++j) {
+				metadata[j + i * ADDRESS_LENGTH] = '\0';
+			}
+			//重新覆盖
+			WriteData(key, metadata);
+			//其实这里可以直接退出了，不过想循环完，去掉所有相同的（理论正常情况下不存在相同的）
+			//return 0;
+		}
+	}
+	//没找到，可以直接退出了
+	return 0;
+}
+
+int dao::HashMapManager::OpenOfs()
+{
+	ofs_.open(file_name_, ios::out | ios::in | ios::binary);
+	if (ofs_.is_open()) {
+		return 0;
+	}
+	//没有打开成功，说明文件没有创建，创建后重试一下
+	ofstream createFile(file_name_, ios::out | ios::binary);
+	ofs_.open(file_name_, ios::out | ios::in | ios::binary);
+	if (ofs_.is_open()) {
+		return 0;
+	}
+	return -1;
+}
+
+

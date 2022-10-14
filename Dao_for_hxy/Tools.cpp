@@ -100,3 +100,19 @@ char* ConverMeta2Chars(MetaData metadata)
 	char* data = NULL;
 	return nullptr;
 }
+
+bool IsAddressSame(Address address1, Address address2)
+{
+	try {
+		for (int i = 0; i < ADDRESS_LENGTH; ++i) {
+			if (address1[i] != address2[i])
+				return false;
+		}
+		return true;
+	}
+	catch(int e){
+		printf("Ä³¸öµØÖ·Îª¿Õ");
+		return false;
+	}
+	
+}
