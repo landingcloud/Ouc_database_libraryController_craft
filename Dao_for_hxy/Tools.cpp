@@ -1,5 +1,5 @@
 #include "Tools.h"
-
+//不确定能不能用
 void CharsExpand(char* dst, int& dstLength, char* src, int srcLength, char* adder, int adderLength)
 {
 	int totalLength = srcLength + adderLength;
@@ -12,7 +12,7 @@ void CharsExpand(char* dst, int& dstLength, char* src, int srcLength, char* adde
 		delete[] dst;
 	dst = finalChar;
 }
-
+//不确定能不能用
 void CharsExpand(char* dst, int& dstLength, char* src, int srcLength, const char* adder)
 {
 	int totalLength = dstLength + strlen(adder);

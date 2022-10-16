@@ -111,8 +111,20 @@ void test6() {
 	hashMapManager.DeleteContents(2, address2);
 }
 
+int test7() {
+	const char* service_name_ = "12345";
+	int name_length_ = strlen(service_name_);
+	int heapNameLength = strlen("./books/") + name_length_ + strlen("_heap") + 1;
+	char* heapName = new char[heapNameLength];
+	memset(heapName, 0, heapNameLength);
+	strcat_s(heapName, heapNameLength, "./books/");
+	strcat_s(heapName, heapNameLength, service_name_);
+	strcat_s(heapName, heapNameLength, "_heap");
+	cout << heapName;
+	return 0;
+}
 int main() {
 	
-	test6();
+	test7();
 
 }

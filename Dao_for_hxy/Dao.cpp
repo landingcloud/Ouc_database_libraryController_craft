@@ -100,17 +100,13 @@ void dao::FileManager::CloseOfs()
 }
 
 
-int dao::FileManager::GetAllData(char** metadatas, int& num)
+int dao::FileManager::GetAllData(MetaData* metadatas, int& num)
 {
 	if (!ifs_.is_open())
 		OpenIfs();
-	metadatas = new char* [file_length_];
-	for (int i = 0; i < file_length_; ++i) {
-		MetaData metadata;
-		ifs_.getline(metadata, BUFFER_LENGTH);	//获取一个元数据
-		
-		metadatas[i] = new char[BUFFER_LENGTH];
-		strcpy_s(metadatas[i], BUFFER_LENGTH, metadata);
+	
+	for (int i = 0; i < num; ++i) {
+		ifs_.getline(metadatas[i], BUFFER_LENGTH);	//获取一个元数据
 	}
 	num = file_length_;
 	return 0;

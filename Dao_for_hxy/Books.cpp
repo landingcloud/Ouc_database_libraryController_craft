@@ -54,3 +54,17 @@ books::BasicBook::BasicBook(ISBN isbn, BookName bookName, Author author, Publish
 	setAuthor(author);
 	setPublisher(publisher);
 }
+
+//books::ObjBook::ObjBook(BasicBook* basicBook, int id)
+//{
+//	ISBN isbn = { 0 };
+//	basicBook->getISBN(isbn);
+//	BookName bookName = { 0 };
+//	basicBook->getBookName(bookName);
+//	Author author = { 0 };
+//	basicBook->getAuthor(author);
+//	Publisher publisher = { 0 };
+//	basicBook->getPublisher(publisher);
+//	
+//
+//}

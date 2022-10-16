@@ -66,12 +66,12 @@ service::RecordService::~RecordService()
 int service::RecordService::AddRecord(Book* book, People* people)
 {
 	//将书和人变成MetaData：
-	MetaData metadata = { 0 };
+	//MetaData metadata = { 0 };
 	//将metadata添加到堆表
-	int index = heap_p->WriteData(metadata);
+	//int index = heap_p->WriteData(metadata);
 	//在bookHash中建立新索引
-	int key;
-	book_hash_p->WriteContents(key, index);
+	//int key;
+	//book_hash_p->WriteContents(key, index);
 	//在peopleHash中建立新索引
 
 	return 0;
@@ -82,12 +82,12 @@ int service::RecordService::SearchRecordByPeo(int& num, char** metadatas, People
 	//计算键值
 	int key;
 	int* indexs;
-	peo_hash_p->GetContents(key, num, indexs);
+	//peo_hash_p->GetContents(key, num, indexs);
 	//提取metadata
 	metadatas = new char*[num];
 	for (int i = 0; i < num; ++i) {
 		metadatas[i] = new char[BUFFER_LENGTH];
-		strcpy_s(metadatas[i], BUFFER_LENGTH, heap_p->GetData(indexs[i]));
+		//strcpy_s(metadatas[i], BUFFER_LENGTH, heap_p->GetData(indexs[i]));
 	}
 
 	return 0;
@@ -98,12 +98,12 @@ int service::RecordService::SearchRecordByBook(int& num, char** metadatas, Book*
 	//计算键值
 	int key;
 	int* indexs;
-	book_hash_p->GetContents(key, num, indexs);
+	//book_hash_p->GetContents(key, num, indexs);
 	//提取metadata
 	metadatas = new char* [num];
 	for (int i = 0; i < num; ++i) {
 		metadatas[i] = new char[BUFFER_LENGTH];
-		strcpy_s(metadatas[i], BUFFER_LENGTH, heap_p->GetData(indexs[i]));
+		//strcpy_s(metadatas[i], BUFFER_LENGTH, heap_p->GetData(indexs[i]));
 	}
 	return 0;
 }
