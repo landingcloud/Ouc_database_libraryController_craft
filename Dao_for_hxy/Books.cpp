@@ -68,3 +68,31 @@ books::BasicBook::BasicBook(ISBN isbn, BookName bookName, Author author, Publish
 //	
 //
 //}
+
+void books::AbstractBook::setTotal(int total, int* ids)
+{
+	if (ids == NULL)
+		return;
+
+	this->total_ = total;
+	if (this->ids_p != NULL) {
+		delete[] this->ids_p;
+	}
+	this->ids_p = new int[this->total_];
+	for (int i = 0; i < this->total_; ++i) {
+		this->ids_p[i] = ids[i];
+	}
+}
+
+void books::AbstractBook::setEnable(int enable, int* enable_ids)
+{
+	if (enable_ids == NULL)
+		return;
+	this->enable_ = enable;
+	if (this->enable_ids_p != NULL) {
+		delete[] this->enable_ids_p;
+	}
+	for (int i = 0; i < this->enable_; ++i) {
+		this->enable_ids_p[i] = enable_ids[i];
+	}
+}

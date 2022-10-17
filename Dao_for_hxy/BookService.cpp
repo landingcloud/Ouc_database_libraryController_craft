@@ -1,4 +1,6 @@
 #include "BookService.h"
+#include <set>
+#include <algorithm>
 
 service::BookService::BookService(char* service_name, int name_length)
 {
@@ -77,7 +79,9 @@ service::BookService::~BookService()
 int service::BookService::AddBook(books::BasicBook basicBook)
 {
 	//生成key
-
+	int isbnHash = ISBNHash(basicBook.getthisISBN());
+	int bookNameHash = NameHash(basicBook.getthisBookName());
+	int authorHash = AuthorHash(basicBook.getthisAuthor());
 	//将basicBook添加到堆表，返回index、同时也认为是书的id
 
 	//将index追加到每个hash表的key的后面
@@ -87,8 +91,28 @@ int service::BookService::AddBook(books::BasicBook basicBook)
 int service::BookService::DeleteBook(books::ObjBook objBook)
 {
 	//提取id
-
+	unsigned long id = objBook.getId();
 	//在借出hash中查看是否被借出了
+	int num = 0;
+	Address* address = new Address[BUFFER_LENGTH / ADDRESS_LENGTH];
+	if (this->borrowed_hash_p->GetContents(id, num, address) == 0) {
+		//成功取出
+		this->book_heap_p->DeleteData(id);
+		Address bookAddress = { 0 };
+		ConverIndex2Address(bookAddress, id);
+		//提取出每一个key
+		int isbnHash = ISBNHash(objBook.getthisISBN());
+		int bookNameHash = NameHash(objBook.getthisBookName());
+		int authorHash = AuthorHash(objBook.getthisAuthor());
+		this->isbn_hash_p->DeleteContents(isbnHash, bookAddress);
+		this->name_hash_p->DeleteContents(bookNameHash, bookAddress);
+		this->author_hash_p->DeleteContents(authorHash, bookAddress);
+	}
+	else {
+		//被借出了
+		return -1;
+	}
+	
 
 	//如果没有被借出
 	//从堆表删除对应index的书，其中id就是index
@@ -100,37 +124,130 @@ int service::BookService::DeleteBook(books::ObjBook objBook)
 int service::BookService::SearchBooks(books::BasicBook basicBook, books::ObjBook* objBooks, int& num)
 {
 	//提取出每一个key
+	int isbnHash = ISBNHash(basicBook.getthisISBN());
+	int bookNameHash = NameHash(basicBook.getthisBookName());
+	int authorHash = AuthorHash(basicBook.getthisAuthor());
 
-	//从每个hash表中提取内容（就是提取index）
+	//从每个hash表中提取内容（Address）
+	Address* address_ISBN = new Address[BUFFER_LENGTH / ADDRESS_LENGTH];
+	int isbn_num = 0;
+	this->isbn_hash_p->GetContents(isbnHash, isbn_num, address_ISBN);
+	
+	Address* address_bookName = new Address[BUFFER_LENGTH / ADDRESS_LENGTH];
+	int bookName_num = 0;
+	this->name_hash_p->GetContents(bookNameHash, bookName_num, address_bookName);
 
-	//index去重
+	Address* address_author = new Address[BUFFER_LENGTH / ADDRESS_LENGTH];
+	int author_num = 0;
+	this->author_hash_p->GetContents(authorHash, author_num, address_author);
+	//index取交集
 
-	//剩下的index用于生成objBooks
+	//index访问堆表获取MetaData，并通过MetaData构建obj
+
+	
+	return 0;
+}
+
+int service::BookService::SearchBooks(books::BasicBook basicBook, list<books::ObjBook>& objBooks)
+{
+	//提取出每一个key
+	int isbnHash = ISBNHash(basicBook.getthisISBN());
+	int bookNameHash = NameHash(basicBook.getthisBookName());
+	int authorHash = AuthorHash(basicBook.getthisAuthor());
+
+	//从每个hash表中提取内容（Address）
+	Address* address_ISBN = new Address[BUFFER_LENGTH / ADDRESS_LENGTH];
+	int isbn_num = 0;
+	this->isbn_hash_p->GetContents(isbnHash, isbn_num, address_ISBN);
+
+	Address* address_bookName = new Address[BUFFER_LENGTH / ADDRESS_LENGTH];
+	int bookName_num = 0;
+	this->name_hash_p->GetContents(bookNameHash, bookName_num, address_bookName);
+
+	Address* address_author = new Address[BUFFER_LENGTH / ADDRESS_LENGTH];
+	int author_num = 0;
+	this->author_hash_p->GetContents(authorHash, author_num, address_author);
+
+	//index求交集
+	set<int> isbnIndex;
+	for (int i = 0; i < isbn_num; ++i) {
+		isbnIndex.insert(ConverAddress2Index(address_ISBN[i]));
+	}
+	delete[] address_ISBN;
+	set<int> nameIndex;
+	for (int i = 0; i < bookName_num; ++i) {
+		nameIndex.insert(ConverAddress2Index(address_bookName[i]));
+	}
+	delete[] address_bookName;
+	set<int> authorIndex;
+	for (int i = 0; i < author_num; ++i) {
+		authorIndex.insert(ConverAddress2Index(address_author[i]));
+	}
+	delete[] address_author;
+	
+	set<int> res1;
+	set<int> res2;
+	set_intersection(isbnIndex.begin(), isbnIndex.end(), nameIndex.begin(), nameIndex.end(), insert_iterator<set<int>>(res1, res1.begin()));
+	set_intersection(res1.begin(), res1.end(), authorIndex.begin(), authorIndex.end(), insert_iterator<set<int>>(res2, res2.begin()));
+	//获取MetaData
+	for (auto it : res2) {
+		MetaData metadata = { 0 };
+		this->book_heap_p->GetData(metadata, it);
+
+		//objBooks.insert()
+	}
+
 	return 0;
 }
 
 int service::BookService::ChangeBooks(books::BasicBook oldBook, books::BasicBook newBook)
 {
 	//通过searchBook找到所有index
+	//提取出每一个key
+	int isbnHash = ISBNHash(oldBook.getthisISBN());
+	int num = 0;
+	Address* addresses = new Address[BUFFER_LENGTH / ADDRESS_LENGTH];
+	this->isbn_hash_p->GetContents(isbnHash, num, addresses);
 	
+	//生成新的MetaData
+	for (int i = 0; i < num; ++i) {
+		int index = ConverAddress2Index(addresses[i]);
+		//this->book_heap_p->UpdataData(index, );
+	}
 	//覆盖
 	return 0;
 }
 
 int service::BookService::BorrowBook(books::ObjBook objBook, peoples::BasicPeoPle people)
 {
-	//提取id号
-
-	//将id插入借出hash表中，其中key是id，value是人
-
+	//提取书id号
+	int id = objBook.getId();
+	//将数据插入被借出hash表中，其中key是书id，value是人
+	Address address = { 0 };
+	ConverIndex2Address(address, people.getId());
+	this->borrowed_hash_p->WriteContents(id, address);
+	
+	//将数据插入借出hash表中，其中key是人id，value是书
+	id = people.getId();
+	ConverIndex2Address(address, objBook.getId());
+	this->borrow_hash_p->WriteContents(id, address);
 	return 0;
 }
 
 int service::BookService::GiveBackBook(books::ObjBook objBook, peoples::BasicPeoPle people)
 {
-	//提取index
+	//提取书id号
+	int id = objBook.getId();
+	//在被借出index下删除
+	Address address = { 0 };
+	ConverIndex2Address(address, people.getId());
+	this->borrowed_hash_p->DeleteContents(id, address);
 
-	//在借出index下删除
+	//同理，修改借出index
+	id = people.getId();
+	ConverIndex2Address(address, objBook.getId());
+	this->borrow_hash_p->DeleteContents(id, address);
+
 	return 0;
 }
 

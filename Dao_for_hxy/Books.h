@@ -17,6 +17,11 @@ namespace books {
 		void getAuthor(Author& author);
 		void getPublisher(Publisher& publisher);
 
+		ISBN& getthisISBN() { return this->isbn_; }
+		BookName& getthisBookName() { return this->book_name_; }
+		Author& getthisAuthor() { return this->author_; }
+		Publisher& getthisPublisher() { return this->publisher_; }
+
 		BasicBook(ISBN isbn, BookName bookName, Author author, Publisher publisher);
 
 	protected:
@@ -28,11 +33,13 @@ namespace books {
 
 	class AbstractBook : public BasicBook {
 	public:
-		void setTotal(int total) { total_ = total; }
-		void setEnable(int enable) { enable_ = enable; }
+		void setTotal(int total, int* ids);
+		void setEnable(int enable, int* enable_ids);
 
 		int getTotal() { return total_; };
 		int getEnable() { return enable_; };
+
+		
 		
 		AbstractBook(ISBN isbn, BookName bookName, Author author, Publisher publisher, int total, int enable) :
 			BasicBook(isbn, bookName, author, publisher),
@@ -61,12 +68,12 @@ namespace books {
 	class ObjBook : public BasicBook {
 	public:
 		void setId(int id) { this->id_ = id; }
-		int getId(int id) { return id; }
+		int getId() { return this->id_; }
 		void setIsBorrowed(bool isBorrowed) { this->is_borrowed_ = isBorrowed; }
 		bool getIsBorrowed() { return this->is_borrowed_; }
-		ObjBook(ISBN isbn, BookName bookName, Author author, Publisher publisher, int id) :
-			BasicBook(isbn, bookName, author, publisher), id_(id), is_borrowed_(0) {}
-		//ObjBook(BasicBook* basicBook, int id);
+		ObjBook(ISBN isbn, BookName bookName, Author author, Publisher publisher, int id, int isBorrowed = 0) :
+			BasicBook(isbn, bookName, author, publisher), id_(id), is_borrowed_(isBorrowed) {}
+		
 	private:
 		int id_;
 		bool is_borrowed_;

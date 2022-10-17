@@ -4,6 +4,7 @@
 #include "PeoPles.h"
 #include "Dao.h"
 
+#include <list>
 using namespace std;
 
 namespace service {
@@ -15,6 +16,7 @@ namespace service {
 		int AddBook(books::BasicBook basicBook);
 		int DeleteBook(books::ObjBook objBook);
 		int SearchBooks(books::BasicBook basicBook, books::ObjBook* objBooks, int& num);	//objBooks需要开辟空间
+		int SearchBooks(books::BasicBook basicBook, list<books::ObjBook>& objBooks);
 		int ChangeBooks(books::BasicBook oldBook, books::BasicBook newBook);
 
 		int BorrowBook(books::ObjBook objBook, peoples::BasicPeoPle people);
