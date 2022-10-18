@@ -129,7 +129,7 @@ void Book::setBookPrice(int price)
     this->price = price;
 }
 
-void Book::setPublishDate(string getPublishDate)
+void Book::setPublishDate(string publishDate)
 {
     this->publishDate = publishDate;
 }

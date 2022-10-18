@@ -8,15 +8,15 @@ class Book
 {
 private:
 
-    string bookName;
-    string author;
-    string publisher;
-    string publishDate;
-    string genre;
-    string ISBN;
-    int bookTotal;
-    int bookAvailable;
-    int price;
+    string bookName;    //书名
+    string author;      //作者
+    string publisher;   //出版社名
+    string publishDate; //出版日期
+    string genre;       //类型
+    string ISBN;        //ISBN
+    int bookTotal;      //书的库存
+    int bookAvailable;  //可借阅书
+    int price;          //价格
 public:
     Book();
     Book(string bookName);
