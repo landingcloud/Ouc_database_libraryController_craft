@@ -1,99 +1,130 @@
 #include<iostream>
+#include"Configuration.h"
+#include"Tools.h"
 #include<fstream>
-#include<string>
 #include"Dao.h"
+
 using namespace std;
-#define BUFFER_LENGTH 100
-typedef char META[BUFFER_LENGTH];
 
-int FillBuffer(char* buffer, char* con) {
-	int index = 0;
-	while (con[index]) {
-		if (index >= BUFFER_LENGTH)
-			return -1;
-		buffer[index] = con[index];
-		index++;
+void test(MetaData& metadata) {
+	memset(metadata, '1', BUFFER_LENGTH - 1);
+}
+
+void test1() {
+	char* data = new char[10]{ 0 };
+	strcat_s(data, 10, "123");
+	MetaData metadata = { 0 };
+	ConverCharS2Meta(metadata, data, 10);
+	cout << metadata;
+}
+
+int AddAddress2Meta(MetaData& metadata, Address address)
+{
+	for (int i = 0; i < BUFFER_LENGTH; i += ADDRESS_LENGTH) {
+		if (metadata[i] == '\0') {
+			for (int j = 0; j < ADDRESS_LENGTH; ++j) {
+				metadata[i + j] = address[j];
+			}
+			return 0;
+		}
+		
 	}
+	return -1;
+}
+int SplitMeta2Address(MetaData metadata, int& num,  Address* addresses)
+{
+	num = 0;
+	char** temp = new char*[BUFFER_LENGTH / ADDRESS_LENGTH];	//最大num数
+	for (int i = 0; i < BUFFER_LENGTH / ADDRESS_LENGTH; i += 1) {
+		temp[i] = new char[ADDRESS_LENGTH] { 0 };
+		if (metadata[i * ADDRESS_LENGTH] != '\0') {
+			++num;
+			for (int j = 0; j < ADDRESS_LENGTH; ++j) {
+				temp[i][j] = metadata[i * ADDRESS_LENGTH + j];
+			}
+		}
+	}
+	
+	for (int i = 0; i < num; ++i) {
+		strcpy_s(addresses[i], ADDRESS_LENGTH, temp[i]);
+		delete[] temp[i];
+	}
+	delete[] temp;
 	return 0;
 }
-
-int FillBuffer(char* buffer, const char* con) {
-	int index = 0;
-	while (con[index]) {
-		if (index >= BUFFER_LENGTH)
-			return -1;
-		buffer[index] = con[index];
-		index++;
+void test2() {
+	MetaData metadata = { 0 };
+	Address address1 = { '1', '2', '3', '4', '5', '6', '7', '\0' };
+	Address address2 = { '8', '7', '6', '5', '4', '3', '2', '\0' };
+	AddAddress2Meta(metadata, address1);
+	cout << metadata << endl;
+	AddAddress2Meta(metadata, address2);
+	cout << metadata << endl;
+	cout << endl;
+	Address* addresses = new Address[BUFFER_LENGTH / ADDRESS_LENGTH];
+	int num = 0;
+	SplitMeta2Address(metadata, num, addresses);
+	for (int i = 0; i < num; i++) {
+		cout << addresses[i] << endl;
 	}
-	buffer[BUFFER_LENGTH - 1] = '\n';
+	
+}
+
+void test3_2(int* ints) {
+	ints = new int[3];
+	ints[0] = 0;
+	ints[1] = 1;
+	ints[2] = 2;
+}
+
+void test3() {
+	int* ints = NULL;
+	test3_2(ints);
+	cout << ints;
+}
+
+void test5() {
+	const char* string= "123456\n";
+	
+	fstream fs;
+	fs.open("test.txt", ios::in | ios::out | ios::binary);
+	fs.clear();
+	fs.seekp(sizeof("123456\n") * 8, ios::beg);
+	fs.write(string, sizeof("123456\n"));
+	fs.close();
+}
+
+void test6() {
+	dao::HashMapManager hashMapManager("hashtest.txt", sizeof("hashtest.txt"));
+	Address address1 = { '1', '2', '3', '4', '5', '6', '7', '\0' };
+	Address address2 = { '8', '7', '6', '5', '4', '3', '2', '\0' };
+	Address address3 = { '1', '1', '4', '5', '1', '4', '\0', '\0' };
+	hashMapManager.WriteContents(2, address1);
+	hashMapManager.WriteContents(2, address2);
+	hashMapManager.WriteContents(4, address3);
+	int num = 0;
+	Address* addresses = new Address[BUFFER_LENGTH / ADDRESS_LENGTH];
+	hashMapManager.GetContents(2, num, addresses);
+	for (int i = 0; i < num; i++) {
+		cout << addresses[i] << endl;
+	}
+	hashMapManager.DeleteContents(2, address2);
+}
+
+int test7() {
+	const char* service_name_ = "12345";
+	int name_length_ = strlen(service_name_);
+	int heapNameLength = strlen("./books/") + name_length_ + strlen("_heap") + 1;
+	char* heapName = new char[heapNameLength];
+	memset(heapName, 0, heapNameLength);
+	strcat_s(heapName, heapNameLength, "./books/");
+	strcat_s(heapName, heapNameLength, service_name_);
+	strcat_s(heapName, heapNameLength, "_heap");
+	cout << heapName;
 	return 0;
 }
-
-namespace dao {
-	void test1() {
-		MetaData data1 = { 0 };
-		MetaData data2 = { 0 };
-		MetaData data3 = { 0 };
-		MetaData data4 = { 0 };
-		FillBuffer(data1, "");
-		FillBuffer(data2, "12345诶");
-		FillBuffer(data3, "这是第三条数据");
-		FillBuffer(data4, "这是第四条数据呢！");
-		char fileName[] = "./测试用文件夹/fileManager.txt";
-		FileManager fileManager(fileName, sizeof(fileName));
-		int w0 = fileManager.WriteData(data4);
-		//int o1 = fileManager.OpenOfs();
-		int w1 = fileManager.WriteData(data1);
-		int w2 = fileManager.WriteData(data2);
-		int w3 = fileManager.WriteData(data3);
-		int w4 = fileManager.WriteData(data4);
-		//fileManager.CloseOfs();
-		MetaData& g0 = fileManager.GetData(1);
-		//int i0 = fileManager.OpenIfs();
-		MetaData& g1 = fileManager.GetData(1);
-		cout << "完毕" << endl;
-		//fileManager.CloseIfs();
-	}
-
-
-
-	void test2() {
-		MetaData data1 = { 0 };
-		MetaData data2 = { 0 };
-		MetaData data3 = { 0 };
-		MetaData data4 = { 0 };
-		MetaData data5 = { 0 };
-		FillBuffer(data1, "123");
-		FillBuffer(data2, "12345诶、、、");
-		FillBuffer(data3, "这是第三条数据@@@");
-		FillBuffer(data4, "这是第四条数据呢！￥￥￥");
-		FillBuffer(data5, "这是插入数据");
-		char fileName[] = "./测试用文件夹/HeapfileManager";
-		HeapFileManager heapFileManager(fileName, sizeof(fileName));
-		//int o1 = heapFileManager.OpenOfs();
-		int w1 = heapFileManager.WriteData(data1);
-		int w2 = heapFileManager.WriteData(data2);
-		int w3 = heapFileManager.WriteData(data3);
-		int w4 = heapFileManager.WriteData(data4);
-		/*int w5 = heapFileManager.WriteData(data5);*/
-		//heapFileManager.CloseOfs();
-
-		//heapFileManager.OpenIfs();
-		MetaData& returnData = heapFileManager.GetData(2);
-		cout << returnData << endl;
-		//heapFileManager.CloseIfs();
-
-		//heapFileManager.OpenOfs();
-		int d2 = heapFileManager.DeleteData(1);
-		int d3 = heapFileManager.DeleteData(2);
-		int w6 = heapFileManager.WriteData(data5);
-		int w7 = heapFileManager.WriteData(data5);
-		int w8 = heapFileManager.WriteData(data5);
-		//heapFileManager.CloseOfs();
-	}
-}
-
-
 int main() {
-	dao::test2();
+	
+	test7();
+
 }

@@ -1,5 +1,7 @@
 #include "Tools.h"
+#include <vector>
 
+//不确定能不能用
 void CharsExpand(char* dst, int& dstLength, char* src, int srcLength, char* adder, int adderLength)
 {
 	int totalLength = srcLength + adderLength;
@@ -12,7 +14,7 @@ void CharsExpand(char* dst, int& dstLength, char* src, int srcLength, char* adde
 		delete[] dst;
 	dst = finalChar;
 }
-
+//不确定能不能用
 void CharsExpand(char* dst, int& dstLength, char* src, int srcLength, const char* adder)
 {
 	int totalLength = dstLength + strlen(adder);
@@ -99,4 +101,94 @@ char* ConverMeta2Chars(MetaData metadata)
 {
 	char* data = NULL;
 	return nullptr;
+}
+
+bool IsAddressSame(Address address1, Address address2)
+{
+	try {
+		for (int i = 0; i < ADDRESS_LENGTH; ++i) {
+			if (address1[i] != address2[i])
+				return false;
+		}
+		return true;
+	}
+	catch(int e){
+		printf("某个地址为空");
+		return false;
+	}
+	
+}
+
+unsigned long ConverAddress2Index(Address address)
+{
+	unsigned long sum = 0;
+	for (int i = 0; i < ADDRESS_LENGTH && address[i] != '\0'; ++i) {
+		sum *= 10;
+		sum += address[i] - '0';
+	}
+	return sum;
+}
+
+void ConverIndex2Address(Address& address, unsigned long index)
+{
+	if (address == NULL)
+		return;
+	std::vector<int> perNum;
+	while (index) {
+		perNum.push_back(index % 10);
+		index /= 10;
+	}
+	for (int i = perNum.size() - 1; i >= 0; --i) {
+		address[i] = perNum[i] + '0';
+	}
+
+}
+
+
+unsigned int DJBHash(char* str)
+{
+	unsigned int hash = 5381;
+
+	while (*str)
+	{
+		hash += (hash << 5) + (*str++);
+	}
+
+	return (hash & 0x7FFFFFFF);
+}
+
+unsigned int ISBNHash(ISBN isbn)
+{
+	unsigned int hash = 5381;
+	for (int i = 0; i < ISBN_LENGTH; ++i) {
+		hash += (hash << 5) + isbn[i];
+	}
+	return (hash & 0x7FFFFFFF);
+}
+
+unsigned int NameHash(BookName bookName)
+{
+	unsigned int hash = 5381;
+	for (int i = 0; i < BOOKNAME_LENGTH; ++i) {
+		hash += (hash << 5) + bookName[i];
+	}
+	return (hash & 0x7FFFFFFF);
+}
+
+unsigned int AuthorHash(Author author)
+{
+	unsigned int hash = 5381;
+	for (int i = 0; i < AUTHOR_LENGTH; ++i) {
+		hash += (hash << 5) + author[i];
+	}
+	return (hash & 0x7FFFFFFF);
+}
+
+unsigned int PublisherHash(Publisher publisher)
+{
+	unsigned int hash = 5381;
+	for (int i = 0; i < PUBLISHER_LENGTH; ++i) {
+		hash += (hash << 5) + publisher[i];
+	}
+	return (hash & 0x7FFFFFFF);
 }

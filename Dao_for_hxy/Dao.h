@@ -18,7 +18,7 @@ namespace dao {
 		int GetFileLength();
 		int GetBitNum();
 		
-		int GetAllData(char** metadatas, int& num);
+		int GetAllData(MetaData* metadatas, int& num);
 		/*
 		* 每次写入都会清空原数据，这个函数应该被重载以适用其他插入方式。
 		* @return -1说明未打开输出流，写入失败
@@ -79,12 +79,14 @@ namespace dao {
 		HashMapManager(char* file_name, int name_length) : FileManager(file_name, name_length){}
 		HashMapManager(const char* file_name, int name_length) : FileManager(file_name, name_length){}
 
-		//int WriteData(int index, MetaData content);
-		int GetContents(int key, int& num, int* indexs);
-		int WriteContents(int key, int value);
+		virtual int WriteData(int key, MetaData metadata);
 
-
+		int AddAddress2Meta(MetaData& metadata, Address address);
+		int SplitMeta2Address(MetaData metadata, int& num, Address* addresses);
+		int GetContents(int key, int& num, Address* addresses);	//重要！
+		int WriteContents(int key, Address address);	//重要！
+		int DeleteContents(int key, Address address);	//如果address第一位是'\0'则删除整个词条
 	private:
-		
+		int OpenOfs();
 	};
 }
